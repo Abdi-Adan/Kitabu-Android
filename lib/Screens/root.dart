@@ -54,10 +54,8 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:kitabu_africa/Screens/AdsPage.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:kitabu_africa/Screens/Homepage.dart';
-import 'package:kitabu_africa/Screens/Insurance.dart';
+
 
 class MyControlScreen extends StatefulWidget {
   @override
