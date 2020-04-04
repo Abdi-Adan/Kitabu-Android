@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class LoaneeDashboard extends StatefulWidget {
+class DebtorDashboard extends StatefulWidget {
   @override
-  _LoaneeDashboardState createState() => _LoaneeDashboardState();
+  _DebtorDashboardState createState() => _DebtorDashboardState();
 }
 
-class _LoaneeDashboardState extends State<LoaneeDashboard> {
+class _DebtorDashboardState extends State<DebtorDashboard> {
 
   var itemTitle;
 

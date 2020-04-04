@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:kitabu_android/Screens/Debtors/CreditItems.dart';
+import 'package:kitabu_android/Widgets/Debtors/debtorCard.dart';
+
+
 
 class Homepage extends StatefulWidget {
   @override
@@ -46,12 +50,9 @@ class _HomepageState extends State<Homepage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: ListView(
-          children: <Widget>[
-            Entry(),
-            // getLoanListView(),
-            Entry(),
-          ],
+        child: ListView.builder(
+          itemCount: 10,
+          itemBuilder: (context) => NewEntry(),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -231,54 +232,12 @@ class _HomepageState extends State<Homepage> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (BuildContext context) => LoaneeDashboard()));
+                        builder: (BuildContext context) => DebtorDashboard()));
               },
             ),
           ),
         );
       },
-    );
-  }
-}
-
-class Entry extends StatelessWidget {
-  final double _balance = 300.0;
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      elevation: 5.0,
-      child: InkWell(
-        splashColor: Colors.deepOrange,
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Color(0xFFf47f07),
-            child: Icon(
-              Icons.play_for_work,
-              color: Colors.white,
-              size: 35.0,
-            ),
-          ),
-          title: Text(
-            "Kelvin Mulamwa",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(
-            "Balance Remaining: $_balance",
-            style: TextStyle(color: Colors.black),
-          ),
-          trailing: Icon(
-            Icons.add_circle_outline,
-            color: Color(0xFFf47f07),
-          ),
-          onTap: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) => LoaneeDashboard()));
-          },
-        ),
-      ),
     );
   }
 }

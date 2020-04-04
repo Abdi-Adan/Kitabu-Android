@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kitabu_android/StartScreens/splash.dart';
+
 
 
 
@@ -13,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepOrange,
       ),
-      home: SplashPage(),
+      home: Splash(),
       // routes: <String, WidgetBuilder> {
       //   "/landingpage": (BuildContext context) => SplashPage(),
       //   "/loginPage": (BuildContext context) =>LoginPage(),
