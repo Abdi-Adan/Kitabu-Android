@@ -47,12 +47,22 @@ class _HomepageState extends State<Homepage> {
 
     if (response.statusCode == 202) {
       List jsonResponse = json.decode(response.body);
-      print(jsonResponse);
+      //print(jsonResponse);
       //var creditor = jsonResponse.map((creditor) => new Creditor.fromJson(creditor)).toList();
       //print(creditor);
       return jsonResponse.map((creditor) => new Creditor.fromJson(creditor)).toList();
     } else {
-      throw Exception('Failed to load creditors.');
+      throw Exception(new Container(
+        child: Center(
+          child: Text(
+            'Something went wrong!',
+            style: new TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ));
     }
   }
 
@@ -78,7 +88,7 @@ class _HomepageState extends State<Homepage> {
     return ListView.builder(
         itemCount: data.length,
         itemBuilder: (context, index) {
-          return _tile(data[index].name, data[index].debt, data[index].id);
+          return _tile(data[index].name, data[index].debt, data[index].idnumber);
         });
   }
 
@@ -142,12 +152,14 @@ class _HomepageState extends State<Homepage> {
       future: _fetch,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          List<Creditor> data = snapshot.data;
+          List data = snapshot.data;
           return _creditorListView(data);
         } else if (snapshot.hasError) {
           return Text("${snapshot.error}");
         }
-        return CircularProgressIndicator();
+        return Center(
+          child: CircularProgressIndicator(),
+        );
       },
     );
   }
@@ -268,8 +280,11 @@ class _HomepageState extends State<Homepage> {
                       elevation: 5.0,
                       color: Color(0xFFf47f07),
                       onPressed: () async{
+                        Navigator.of(context).pop();
                         await registerCreditor(_nameTx.text, _idTx.text, _phoneTx.text);
-                        moveBackToHomepage();
+                        setState(() {
+                          _fetch = fetchCreditors();
+                        });
                       },
                       child: Text(
                         "Add",
