@@ -1,13 +1,79 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:kitabu_android/models/items.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class DebtorDashboard extends StatefulWidget {
+  final String creditorName;
+  final double creditorDebt;
+  final int creditorId;
+
+  const DebtorDashboard(this.creditorName, this.creditorDebt, this.creditorId);
   @override
-  _DebtorDashboardState createState() => _DebtorDashboardState();
+  _DebtorDashboardState createState() =>
+      _DebtorDashboardState(creditorName, creditorDebt, creditorId);
 }
 
 class _DebtorDashboardState extends State<DebtorDashboard> {
+  final String creditorName;
+  final double creditorDebt;
+  final int creditorId;
 
   var itemTitle;
+
+  TextEditingController _nameTx = new TextEditingController();
+  TextEditingController _priceTx = new TextEditingController();
+  TextEditingController _quantityTx = new TextEditingController();
+
+  _DebtorDashboardState(this.creditorName, this.creditorDebt, this.creditorId);
+
+  Future<List<Item>> fetchItems() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.get('token');
+    final response = await http.get(
+      'https://kledgerapi.herokuapp.com/$creditorId/items',
+      headers: {HttpHeaders.authorizationHeader: "Bearer $token"},
+    );
+
+    if (response.statusCode == 202) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse
+          .map((creditor) => new Item.fromJson(creditor))
+          .toList();
+    } else {
+      throw Exception('Failed to load creditors.');
+    }
+  }
+
+  Future<List<Item>> _fetch;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch = fetchItems();
+  }
+
+  Future<http.Response> addItem(
+      String name, String idnumber, String phone) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.get('token');
+    return http.post(
+      'https://kledgerapi.herokuapp.com/$creditorId/add_item',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: "Bearer $token",
+      },
+      body: jsonEncode({
+        'item_name': name,
+        'price': idnumber,
+        'quantity': phone,
+        'borrower': creditorId,
+      }),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +96,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
               },
             ),
             title: Text(
-              "Creditors Name ",
+              "$creditorName",
               style: TextStyle(color: Colors.white),
             ),
             actions: <Widget>[
@@ -48,10 +114,9 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                   ),
                 ),
               ),
-                            InkWell(
+              InkWell(
                 splashColor: Colors.orange,
-                onTap: () {
-                },
+                onTap: () {},
                 child: Padding(
                   padding: EdgeInsets.only(
                     left: 15.0,
@@ -68,12 +133,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
           body: SafeArea(
             child: Padding(
               padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
-              child: ListView(
-                children: <Widget>[
-                  CardedStatus(),
-                  ItemCard(),
-                ],
-              ),
+              child: buildList(context),
             ),
           ),
           floatingActionButton: FloatingActionButton(
@@ -118,9 +178,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                                     BorderRadius.all(Radius.circular(15.0))),
                             labelText: "Item Name",
                             labelStyle: TextStyle(color: Colors.black)),
-                            onSaved: (itemTitle) {
-                              itemTitle = itemTitle;
-                            },
+                        controller: _nameTx,
                       ),
                     ),
                     Padding(
@@ -149,6 +207,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                             labelStyle: TextStyle(
                               color: Colors.black,
                             )),
+                            controller: _quantityTx,
                       ),
                     ),
                     Padding(
@@ -177,6 +236,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                             labelStyle: TextStyle(
                               color: Colors.black,
                             )),
+                            controller: _priceTx,
                       ),
                     ),
                     Row(
@@ -185,7 +245,10 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                         RaisedButton(
                           elevation: 5.0,
                           color: Color(0xFFf47f07),
-                          onPressed: () {},
+                          onPressed: () async{
+                            await addItem(_nameTx.text, _quantityTx.text, _priceTx.text);
+                            Navigator.of(context);
+                          },
                           child: Text(
                             "Add",
                             style: TextStyle(color: Colors.white),
@@ -194,7 +257,9 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                         RaisedButton(
                           elevation: 5.0,
                           color: Color(0xFFf47f07),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.of(context).pop(true);
+                          },
                           child: Text(
                             "Cancel",
                             style: TextStyle(color: Colors.white),
@@ -215,14 +280,15 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
     return null;
   }
 
-  
-}
+  ListView _itemListView(data) {
+    return ListView.builder(
+        itemCount: data.length,
+        itemBuilder: (context, index) {
+          return _tile(data[index].full_name, data[index].debt, data[index].id);
+        });
+  }
 
-class ItemCard extends StatelessWidget {
-  final _quantity = 10;
-  final _price = 50;
-  @override
-  Widget build(BuildContext context) {
+  Widget _tile(String name, double quantity, double price) {
     return InkWell(
       splashColor: Color(0xFFf47f07),
       child: Card(
@@ -230,23 +296,39 @@ class ItemCard extends StatelessWidget {
         elevation: 5.0,
         child: ListTile(
           title: Text(
-            "data",
-            // itemTitle,
+            name,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           onTap: () {},
-          subtitle: Text("Quantity: $_quantity Pcs"),
+          subtitle: Text("Quantity: $quantity Pcs"),
           trailing: Text(
-            "Price: $_price KES",
+            "Price: $price KES",
             style: TextStyle(color: Color(0xFFf47f07)),
           ),
         ),
       ),
     );
   }
+
+  Widget buildList(BuildContext context) {
+    return FutureBuilder<List<Item>>(
+      future: _fetch,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          List<Item> data = snapshot.data;
+          return _itemListView(data);
+        } else if (snapshot.hasError) {
+          return Text("${snapshot.error}");
+        }
+        return CircularProgressIndicator();
+      },
+    );
+  }
 }
 
 class CardedStatus extends StatelessWidget {
+  final int debt;
+  CardedStatus(this.debt);
   @override
   Widget build(BuildContext context) {
     return Row(children: <Widget>[
@@ -254,7 +336,7 @@ class CardedStatus extends StatelessWidget {
         child: RaisedButton(
           color: Color(0xFFf47f07),
           child: Text(
-            "DUE: 123.00",
+            "DUE: KES $debt",
             style: TextStyle(color: Colors.white),
           ),
           onPressed: () {},
