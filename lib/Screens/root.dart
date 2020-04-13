@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:kitabu_android/Screens/Ads/AdsPage.dart';
 import 'package:kitabu_android/Screens/Debtors/Debtors.dart';
-import 'package:kitabu_android/Screens/Insurance.dart';
 
 
 class MyControlScreen extends StatefulWidget {
@@ -14,7 +13,7 @@ class _MyControlScreenState extends State<MyControlScreen> {
   int _page = 0;
   GlobalKey _bottomNavigationKey = GlobalKey();
 
-  List<Widget> _screens = [Homepage(), AdsPage(), InsurancePage()];
+  List<Widget> _screens = [Homepage(), AdsPage(),];
 
   @override
   Widget build(BuildContext context) {

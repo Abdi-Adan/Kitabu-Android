@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kitabu_android/StartScreens/splash.dart';
+import 'package:kitabu_android/Start/splash.dart';
 
 
 
