@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:kitabu_android/Screens/Debtors/CreditItems.dart';
-// import 'package:kitabu_android/Widgets/Debtors/debtorCard.dart';
+import 'package:kitabu_android/Widgets/Debtors/debtorCard.dart';
 
 
 
@@ -49,12 +49,12 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // body: SafeArea(
-      //   // child: ListView.builder(
-      //   //   itemCount: 10,
-      //   //   itemBuilder: (context) => NewEntry(),
-      //   // ),
-      // ),
+      body: SafeArea(
+        child: ListView.builder(
+          itemCount: 10,
+          itemBuilder: (context) => NewEntry(),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         elevation: 5.0,
         backgroundColor: Color(0xFFf47f07),

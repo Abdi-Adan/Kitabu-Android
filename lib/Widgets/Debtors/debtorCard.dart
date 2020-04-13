@@ -31,10 +31,10 @@ class NewEntry extends StatelessWidget {
             color: Color(0xFFf47f07),
           ),
           onTap: () {
-            // Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //         builder: (BuildContext context) => DebtorDashboard()));
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => DebtorDashboard()));
           },
         ),
       ),
