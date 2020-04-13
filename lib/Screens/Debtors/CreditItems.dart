@@ -9,6 +9,74 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
 
   var itemTitle;
 
+
+  TextEditingController _nameTx = new TextEditingController();
+  TextEditingController _priceTx = new TextEditingController();
+  TextEditingController _quantityTx = new TextEditingController();
+
+  _DebtorDashboardState(this.creditorName, this.creditorDebt, this.creditorId);
+
+  Future<List<Item>> fetchItems() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.get('token');
+    final response = await http.get(
+      'https://kledgerapi.herokuapp.com/$creditorId/items',
+      headers: {HttpHeaders.authorizationHeader: "Bearer $token"},
+    );
+
+    //print(response.body);
+    //print(response.statusCode);
+
+    if (response.statusCode == 202) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse
+          .map((item) => new Item.fromJson(item))
+          .toList();
+    } else {
+      throw Exception(
+        Container(
+        child: Center(
+          child: Text(
+            'Something went wrong!',
+            style: new TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ));
+    }
+  }
+
+  Future<List<Item>> _fetch;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch = fetchItems();
+  }
+
+  Future<http.Response> addItem(
+      String name, String idnumber, String phone) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.get('token');
+    return http.post(
+      'https://kledgerapi.herokuapp.com/$creditorId/add_item',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: "Bearer $token",
+      },
+      body: jsonEncode({
+        'item_name': name,
+        'price': idnumber,
+        'quantity': phone,
+        'borrower': creditorId,
+      }),
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -30,7 +98,9 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
               },
             ),
             title: Text(
-              "Creditors Name ",
+
+              "$creditorName - Dues: $creditorDebt)",
+
               style: TextStyle(color: Colors.white),
             ),
             actions: <Widget>[
@@ -68,12 +138,9 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
           body: SafeArea(
             child: Padding(
               padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
-              child: ListView(
-                children: <Widget>[
-                  CardedStatus(),
-                  ItemCard(),
-                ],
-              ),
+
+              child: buildList(context)
+
             ),
           ),
           floatingActionButton: FloatingActionButton(
@@ -185,7 +252,14 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                         RaisedButton(
                           elevation: 5.0,
                           color: Color(0xFFf47f07),
-                          onPressed: () {},
+
+                          onPressed: () async{
+                            Navigator.pop(context);
+                            await addItem(_nameTx.text, _quantityTx.text, _priceTx.text);
+                            setState(() async {
+                              _fetch = fetchItems();
+                            });                            
+                          },
                           child: Text(
                             "Add",
                             style: TextStyle(color: Colors.white),
@@ -194,7 +268,10 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                         RaisedButton(
                           elevation: 5.0,
                           color: Color(0xFFf47f07),
-                          onPressed: () {},
+
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
                           child: Text(
                             "Cancel",
                             style: TextStyle(color: Colors.white),
@@ -215,8 +292,14 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
     return null;
   }
 
-  
-}
+
+  Widget _itemListView(data) {
+    return ListView.builder(
+        itemCount: data.length,
+        itemBuilder: (context, index) {
+          return _tile(data[index].name, data[index].quantity, data[index].price);
+        });
+  }
 
 class ItemCard extends StatelessWidget {
   final _quantity = 10;
@@ -235,18 +318,50 @@ class ItemCard extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           onTap: () {},
-          subtitle: Text("Quantity: $_quantity Pcs"),
-          trailing: Text(
-            "Price: $_price KES",
-            style: TextStyle(color: Color(0xFFf47f07)),
+
+          subtitle: Text("Quantity: $quantity Pcs"),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                "Unit Price: $price KES",
+                style: TextStyle(color: Color(0xFFf47f07)),
+              ),
+              Text(
+                "Total: ${price * quantity} KES",
+                style: TextStyle(color: Color(0xFFf47f07)),
+              ),
+            ],
+
           ),
         ),
       ),
     );
   }
+
+
+  Widget buildList(BuildContext context) {
+    return FutureBuilder<List<Item>>(
+      future: _fetch,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          List<Item> data = snapshot.data;
+          return _itemListView(data);
+        } else if (snapshot.hasError) {
+          return Text("${snapshot.error}");
+        }
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+  }
 }
 
 class CardedStatus extends StatelessWidget {
+  final double debt;
+  CardedStatus(this.debt);
+
   @override
   Widget build(BuildContext context) {
     return Row(children: <Widget>[
