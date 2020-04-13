@@ -1,28 +1,14 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:kitabu_android/models/items.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 
 class DebtorDashboard extends StatefulWidget {
-  final String creditorName;
-  final double creditorDebt;
-  final int creditorId;
-
-  const DebtorDashboard(this.creditorName, this.creditorDebt, this.creditorId);
   @override
-  _DebtorDashboardState createState() =>
-      _DebtorDashboardState(creditorName, creditorDebt, creditorId);
+  _DebtorDashboardState createState() => _DebtorDashboardState();
 }
 
 class _DebtorDashboardState extends State<DebtorDashboard> {
-  final String creditorName;
-  final double creditorDebt;
-  final int creditorId;
 
   var itemTitle;
+
 
   TextEditingController _nameTx = new TextEditingController();
   TextEditingController _priceTx = new TextEditingController();
@@ -89,6 +75,8 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
     );
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -110,7 +98,9 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
               },
             ),
             title: Text(
+
               "$creditorName - Dues: $creditorDebt)",
+
               style: TextStyle(color: Colors.white),
             ),
             actions: <Widget>[
@@ -128,9 +118,10 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                   ),
                 ),
               ),
-              InkWell(
+                            InkWell(
                 splashColor: Colors.orange,
-                onTap: () {},
+                onTap: () {
+                },
                 child: Padding(
                   padding: EdgeInsets.only(
                     left: 15.0,
@@ -147,7 +138,9 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
           body: SafeArea(
             child: Padding(
               padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
+
               child: buildList(context)
+
             ),
           ),
           floatingActionButton: FloatingActionButton(
@@ -192,7 +185,9 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                                     BorderRadius.all(Radius.circular(15.0))),
                             labelText: "Item Name",
                             labelStyle: TextStyle(color: Colors.black)),
-                        controller: _nameTx,
+                            onSaved: (itemTitle) {
+                              itemTitle = itemTitle;
+                            },
                       ),
                     ),
                     Padding(
@@ -221,7 +216,6 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                             labelStyle: TextStyle(
                               color: Colors.black,
                             )),
-                            controller: _quantityTx,
                       ),
                     ),
                     Padding(
@@ -250,7 +244,6 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                             labelStyle: TextStyle(
                               color: Colors.black,
                             )),
-                            controller: _priceTx,
                       ),
                     ),
                     Row(
@@ -259,6 +252,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                         RaisedButton(
                           elevation: 5.0,
                           color: Color(0xFFf47f07),
+
                           onPressed: () async{
                             Navigator.pop(context);
                             await addItem(_nameTx.text, _quantityTx.text, _priceTx.text);
@@ -274,6 +268,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                         RaisedButton(
                           elevation: 5.0,
                           color: Color(0xFFf47f07),
+
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -297,6 +292,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
     return null;
   }
 
+
   Widget _itemListView(data) {
     return ListView.builder(
         itemCount: data.length,
@@ -305,7 +301,11 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
         });
   }
 
-  Widget _tile(String name, double quantity, double price) {
+class ItemCard extends StatelessWidget {
+  final _quantity = 10;
+  final _price = 50;
+  @override
+  Widget build(BuildContext context) {
     return InkWell(
       splashColor: Color(0xFFf47f07),
       child: Card(
@@ -313,10 +313,12 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
         elevation: 5.0,
         child: ListTile(
           title: Text(
-            name,
+            "data",
+            // itemTitle,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           onTap: () {},
+
           subtitle: Text("Quantity: $quantity Pcs"),
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -330,11 +332,13 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                 style: TextStyle(color: Color(0xFFf47f07)),
               ),
             ],
+
           ),
         ),
       ),
     );
   }
+
 
   Widget buildList(BuildContext context) {
     return FutureBuilder<List<Item>>(
@@ -357,6 +361,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
 class CardedStatus extends StatelessWidget {
   final double debt;
   CardedStatus(this.debt);
+
   @override
   Widget build(BuildContext context) {
     return Row(children: <Widget>[
@@ -364,7 +369,7 @@ class CardedStatus extends StatelessWidget {
         child: RaisedButton(
           color: Color(0xFFf47f07),
           child: Text(
-            "DUE: KES $debt",
+            "DUE: 123.00",
             style: TextStyle(color: Colors.white),
           ),
           onPressed: () {},
