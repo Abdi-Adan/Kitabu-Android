@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:kitabu_android/Screens/root.dart';
-import 'package:kitabu_android/Start/Login.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:kitabu_android/Start/splash.dart';
 
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences.getInstance().then((prefs) {
-    var status = prefs.getString('token');
-    runApp(MaterialApp(
+
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
       title: 'Kitabu',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.deepOrange,
       ),
-      home: status == null ? Login() : MyControlScreen(),
-      )
+      home: Splash(),
+      // routes: <String, WidgetBuilder> {
+      //   "/landingpage": (BuildContext context) => SplashPage(),
+      //   "/loginPage": (BuildContext context) =>LoginPage(),
+      //   "/HomePage": (BuildContext context) =>Homepage(),
+      //   "/ControlScreen": (BuildContext context) =>MyControlScreen(),
+      // },
     );
-  });
+  }
 }

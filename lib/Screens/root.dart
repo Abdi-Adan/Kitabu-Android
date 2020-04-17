@@ -50,6 +50,11 @@ class _MyControlScreenState extends State<MyControlScreen> {
             size: 30,
             color: Colors.white,
           ),
+          Icon(
+            Icons.timeline,
+            size: 30,
+            color: Colors.white,
+          ),
         ],
         color: Color(0xff2f00ff),
         buttonBackgroundColor: Color(0xFFf47f07),

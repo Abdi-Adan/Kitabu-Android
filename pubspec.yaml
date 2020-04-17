@@ -19,7 +19,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http:
+  firebase_auth:
+  cloud_firestore:
+  validate: ^1.7.0
+  google_sign_in: ^4.0.7
+  curved_navigation_bar: ^0.3.2
   #
 
   # The following adds the Cupertino Icons font to your application.
@@ -28,6 +32,7 @@ dependencies:
   curved_navigation_bar: ^0.3.1
   json_table: ^1.4.0
   shared_preferences: ^0.5.6+3
+
 
 dev_dependencies:
   flutter_test:
