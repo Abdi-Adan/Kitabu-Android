@@ -22,7 +22,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
   final double creditorDebt;
   final int creditorId;
 
-  var itemTitle;
+  //var itemTitle;
 
   TextEditingController _nameTx = new TextEditingController();
   TextEditingController _priceTx = new TextEditingController();
@@ -46,19 +46,11 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
       return jsonResponse
           .map((item) => new Item.fromJson(item))
           .toList();
+    }else if (response.statusCode == 404){
+      throw Exception("No records Found!"); 
     } else {
       throw Exception(
-        Container(
-        child: Center(
-          child: Text(
-            'Something went wrong!',
-            style: new TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ));
+            'Something went wrong!');
     }
   }
 
@@ -71,7 +63,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
   }
 
   Future<http.Response> addItem(
-      String name, String idnumber, String phone) async {
+      String name, String price, String quantity) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.get('token');
     return http.post(
@@ -82,8 +74,8 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
       },
       body: jsonEncode({
         'item_name': name,
-        'price': idnumber,
-        'quantity': phone,
+        'price': price,
+        'quantity': quantity,
         'borrower': creditorId,
       }),
     );
@@ -97,53 +89,6 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
           return null;
         },
         child: Scaffold(
-          appBar: AppBar(
-            iconTheme: IconThemeData(color: Colors.white),
-            backgroundColor: Color(0xff2f00ff),
-            leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                moveBackToHomepage();
-              },
-            ),
-            title: Text(
-              "$creditorName - Dues: $creditorDebt)",
-              style: TextStyle(color: Colors.white),
-            ),
-            actions: <Widget>[
-              InkWell(
-                splashColor: Colors.orange,
-                onTap: () {},
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: 15.0,
-                    right: 15.0,
-                  ),
-                  child: Icon(
-                    Icons.vibration,
-                    color: Colors.deepOrange,
-                  ),
-                ),
-              ),
-              InkWell(
-                splashColor: Colors.orange,
-                onTap: () {},
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: 15.0,
-                    right: 15.0,
-                  ),
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.deepOrange,
-                  ),
-                ),
-              ),
-            ],
-          ),
           body: SafeArea(
             child: Padding(
               padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
@@ -262,9 +207,7 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
                           onPressed: () async{
                             Navigator.pop(context);
                             await addItem(_nameTx.text, _quantityTx.text, _priceTx.text);
-                            setState(() async {
-                              _fetch = fetchItems();
-                            });                            
+                            _fetch = fetchItems();                           
                           },
                           child: Text(
                             "Add",
@@ -344,106 +287,14 @@ class _DebtorDashboardState extends State<DebtorDashboard> {
           List<Item> data = snapshot.data;
           return _itemListView(data);
         } else if (snapshot.hasError) {
-          return Text("${snapshot.error}");
+          return Center(
+            child: Text("${snapshot.error}"),
+          );
         }
         return Center(
           child: CircularProgressIndicator(),
         );
       },
     );
-  }
-}
-
-class CardedStatus extends StatelessWidget {
-  final double debt;
-  CardedStatus(this.debt);
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: <Widget>[
-      Expanded(
-        child: RaisedButton(
-          color: Color(0xFFf47f07),
-          child: Text(
-            "DUE: KES $debt",
-            style: TextStyle(color: Colors.white),
-          ),
-          onPressed: () {},
-        ),
-      ),
-      SizedBox(
-        width: 10.0,
-      ),
-      Expanded(
-        child: RaisedButton(
-          color: Color(0xFFf47f07),
-          child: Text(
-            "Pay Back",
-            style: TextStyle(color: Colors.white),
-          ),
-          onPressed: () {
-            showDialog<String>(
-              context: context,
-              builder: (BuildContext context) => SimpleDialog(
-                title: Text(
-                  "PayBack Details",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                children: <Widget>[
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-                    child: TextFormField(
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Color(0xFFf47f07),
-                                width: 1.5,
-                                style: BorderStyle.solid,
-                              ),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(15.0))),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Color(0xFFf47f07),
-                                width: 1.5,
-                                style: BorderStyle.solid,
-                              ),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(15.0))),
-                          labelText: "Enter Amount",
-                          labelStyle: TextStyle(color: Colors.black)),
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      RaisedButton(
-                        elevation: 5.0,
-                        color: Color(0xFFf47f07),
-                        onPressed: () {},
-                        child: Text(
-                          "Subtract",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      RaisedButton(
-                        elevation: 5.0,
-                        color: Color(0xFFf47f07),
-                        onPressed: () {},
-                        child: Text(
-                          "Cancel",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    ]);
   }
 }

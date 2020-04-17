@@ -71,9 +71,10 @@ class _LoginState extends State<Login> {
         minWidth: MediaQuery.of(context).size.width,
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
         onPressed: () {
-          getToken(_idTx.text, _passTx.text);
-          Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (contex) => MyControlScreen()));
+          getToken(_idTx.text, _passTx.text).whenComplete((){
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (contex) => MyControlScreen()));
+          }
+          );
         },
         child: Text("Log In",
             textAlign: TextAlign.center,
