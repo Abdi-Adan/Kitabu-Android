@@ -1,13 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:kitabu_android/Screens/Debtors/CreditorBoard.dart';
 import 'package:kitabu_android/models/creditor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 // import 'package:kitabu_android/Widgets/Debtors/debtorCard.dart';
-
-
 
 class Homepage extends StatefulWidget {
   @override
@@ -15,18 +15,16 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  //
-  String creditorName;
-  int creditorId;
-  int creditorPhoneNo;
-  //
-  int _count = 5;
+  
+  TextEditingController _nameTx = new TextEditingController();
+  TextEditingController _idTx = new TextEditingController();
+  TextEditingController _phoneTx = new TextEditingController();
+
   //
   void moveBackToHomepage() {
     Navigator.pop(context);
     return null;
   }
-
 
   Future<List<Creditor>> _fetch;
 
@@ -120,7 +118,6 @@ class _HomepageState extends State<Homepage> {
             );
 }
 
-
   Future<bool> dialogTrigger(BuildContext context) async {
     return showDialog(
         context: context,
@@ -143,7 +140,6 @@ class _HomepageState extends State<Homepage> {
         });
   }
 
-
   Widget buildList(BuildContext context) {
     return FutureBuilder<List<Creditor>>(
       future: _fetch,
@@ -163,17 +159,13 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // body: SafeArea(
-      //   // child: ListView.builder(
-      //   //   itemCount: 10,
-      //   //   itemBuilder: (context) => NewEntry(),
-      //   // ),
-      // ),
+      body: SafeArea(
+         child: buildList(context),
+       ),
       floatingActionButton: FloatingActionButton(
         elevation: 5.0,
         backgroundColor: Color(0xFFf47f07),
@@ -215,9 +207,7 @@ class _HomepageState extends State<Homepage> {
                                 BorderRadius.all(Radius.circular(15.0))),
                         labelText: "Creditors' Name",
                         labelStyle: TextStyle(color: Colors.black)),
-                    onSaved: (value) {
-                      this.creditorName = value;
-                    },
+                    controller: _nameTx,
                   ),
                 ),
                 Padding(
@@ -246,9 +236,7 @@ class _HomepageState extends State<Homepage> {
                         labelStyle: TextStyle(
                           color: Colors.black,
                         )),
-                    onSaved: (value) {
-                      this.creditorId = value as int;
-                    },
+                    controller: _idTx,
                   ),
                 ),
                 Padding(
@@ -277,9 +265,7 @@ class _HomepageState extends State<Homepage> {
                         labelStyle: TextStyle(
                           color: Colors.black,
                         )),
-                    onSaved: (value) {
-                      this.creditorPhoneNo = value as int;
-                    },
+                    controller: _phoneTx,
                   ),
                 ),
                 Row(
@@ -288,13 +274,11 @@ class _HomepageState extends State<Homepage> {
                     RaisedButton(
                       elevation: 5.0,
                       color: Color(0xFFf47f07),
-
                       onPressed: () async{
                         Navigator.of(context).pop();
                         await registerCreditor(_nameTx.text, _idTx.text, _phoneTx.text);
                         _fetch = fetchCreditors();
                       },
-
                       child: Text(
                         "Add",
                         style: TextStyle(color: Colors.white),
@@ -318,78 +302,6 @@ class _HomepageState extends State<Homepage> {
           );
         },
       ),
-    );
-  }
-
-  //
-  ListView getLoanListView() {
-    final double _balance = 300.0;
-    return ListView.builder(
-      itemCount: _count,
-      itemBuilder: (BuildContext context, int position) {
-        return Card(
-          color: Colors.white,
-          elevation: 5.0,
-          child: InkWell(
-            splashColor: Colors.deepOrange,
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Color(0xFFf47f07),
-                child: Icon(
-                  Icons.play_for_work,
-                  color: Colors.white,
-                  size: 35.0,
-                ),
-              ),
-              title: Text(
-                "Kelvin Mulama",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                "Balance Remaining: $_balance",
-                style: TextStyle(color: Colors.black),
-              ),
-              trailing: Icon(
-                Icons.add_circle_outline,
-                color: Color(0xFFf47f07),
-              ),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (BuildContext context) => DebtorDashboard()));
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class CreditorList extends StatefulWidget {
-  @override
-  _CreditorListState createState() => _CreditorListState();
-}
-
-class _CreditorListState extends State<CreditorList> {
-  int count =0;
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: getCreditorList(),
-    );
-  }
-  ListView getCreditorList(){
-    // TextStyle style = Theme.of(context).textTheme.subhead;
-
-    return ListView.builder(
-      itemCount: count,
-      itemBuilder: (BuildContext contex, int position){
-        return Card(
-
-        );
-      },
     );
   }
 }

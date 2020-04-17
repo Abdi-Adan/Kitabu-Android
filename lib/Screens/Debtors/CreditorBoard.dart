@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kitabu_android/Screens/Debtors/CreditItems.dart';
 import 'package:kitabu_android/Screens/Debtors/Payments.dart';
 
 class CreditorBoard extends StatefulWidget {
@@ -102,7 +101,7 @@ class _CreditorBoardState extends State<CreditorBoard> {
         ),
         body: TabBarView(
           children: <Widget>[
-            DebtorDashboard(creditorName, creditorDebt, creditorId),
+            CreditorBoard(creditorName, creditorDebt, creditorId),
             PayDashboard(creditorName, creditorDebt, creditorId),
           ],
         ),
