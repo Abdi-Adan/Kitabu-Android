@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:kitabu_android/Screens/Ads/AdsPage.dart';
 import 'package:kitabu_android/Screens/Debtors/Debtors.dart';
+import 'package:kitabu_android/models/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class MyControlScreen extends StatefulWidget {
@@ -66,8 +72,78 @@ class _MyControlScreenState extends State<MyControlScreen> {
 }
 
 class MyDrawer extends StatelessWidget {
+
+  //static SharedPreferences prefs;
+  //String name = prefs.get('name');
+  //String phone = prefs.get('phone');
+  //String idnumber = prefs.get('idnumber');
+
+  Future<List<User>> fetchUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.get('token');
+    //print(token);
+    final response = await http.get(
+      'https://kledgerapi.herokuapp.com/user/details',
+      headers: {HttpHeaders.authorizationHeader: "Bearer $token"},
+    );
+    //print(response.body);
+    print(response.statusCode);
+
+    if (response.statusCode == 202) {
+      List jsonResponse = json.decode(response.body);
+      //print(jsonResponse);
+      //var creditor = jsonResponse.map((creditor) => new Creditor.fromJson(creditor)).toList();
+      //print(creditor);
+      return jsonResponse.map((creditor) => new User.fromJson(creditor)).toList();
+    } else {
+      throw Exception(
+            'Something went wrong!',
+            );
+    }
+  }
+
+  static getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.get('token');
+    return token;
+  }
+
+  fetchData() async{
+    String access = getToken();
+    final response = await http.get(
+      'https://kledgerapi.herokuapp.com/user/details',
+      headers: {HttpHeaders.authorizationHeader: "Bearer $access"},
+    );
+    if (response.statusCode == 202) {
+      //var jsonResponse = json.decode(response.body);
+      //return jsonResponse.toList();
+      Map<String, dynamic> map = json.decode(response.body);
+      var user = User.fromJson(map);
+      String name = user.name;
+      String phone = user.phone;
+      String idnumber = user.idnumber;
+      _saveToPrefs(name, phone, idnumber);
+      return user;
+    }else {
+      throw Exception(
+            'Something went wrong!',
+            );
+    }
+
+  }
+
+  _saveToPrefs(String name, String phone, String idnumber) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('name', name);
+    prefs.setString('phone', phone);
+    prefs.setString('idnumber', idnumber);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
+    var user = fetchUser().then((value){
+      return value;
+    });
     return Drawer(
       child: ListView(
         children: <Widget>[
@@ -86,11 +162,11 @@ class MyDrawer extends StatelessWidget {
                   ),
                 ),
               )),
-          InkWell(
+          /*InkWell(
             splashColor: Colors.deepOrange,
             child: ListTile(
               title: Text("Name"),
-              subtitle: Text('name'),
+              subtitle: Text('${user}'),
               trailing: Icon(Icons.perm_contact_calendar),
               onTap: () {},
             ),
@@ -99,7 +175,7 @@ class MyDrawer extends StatelessWidget {
             splashColor: Colors.deepOrange,
             child: ListTile(
               title: Text("ID"),
-              subtitle: Text("37177280"),
+              subtitle: Text("$idnumber"),
               trailing: Icon(Icons.calendar_view_day),
               onTap: () {},
             ),
@@ -108,25 +184,18 @@ class MyDrawer extends StatelessWidget {
             splashColor: Colors.deepOrange,
             child: ListTile(
               title: Text("Phone Number"),
-              subtitle: Text("+254723073552"),
+              subtitle: Text("$phone"),
               trailing: Icon(Icons.phone),
               onTap: () {},
             ),
-          ),
+          ),*/
           InkWell(
             splashColor: Colors.deepOrange,
             child: ListTile(
               title: Text("LogOut"),
               trailing: Icon(Icons.lock),
               onTap: () {
-                // FirebaseAuth.instance
-                //     .signOut()
-                //     .then((value) {
-                //       Navigator.of(context).pushReplacementNamed("/landingpage");
-                //     })
-                //     .catchError((e) {
-                //   print(e);
-                // });
+                //Navigator.pushReplacement(context, Login());
               },
             ),
           ),

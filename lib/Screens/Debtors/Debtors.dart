@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:kitabu_android/Screens/Debtors/CreditItems.dart';
+import 'package:http/http.dart' as http;
+import 'package:kitabu_android/Screens/Debtors/CreditorBoard.dart';
+import 'package:kitabu_android/models/creditor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 // import 'package:kitabu_android/Widgets/Debtors/debtorCard.dart';
 
 
@@ -43,24 +47,17 @@ class _HomepageState extends State<Homepage> {
     //print(response.body);
     print(response.statusCode);
 
-    if (response.statusCode == 202) {
+    if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       //print(jsonResponse);
       //var creditor = jsonResponse.map((creditor) => new Creditor.fromJson(creditor)).toList();
       //print(creditor);
       return jsonResponse.map((creditor) => new Creditor.fromJson(creditor)).toList();
+    } else if (response.statusCode == 404){
+      throw Exception("No records Found!"); 
     } else {
-      throw Exception(new Container(
-        child: Center(
-          child: Text(
-            'Something went wrong!',
-            style: new TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ));
+      throw Exception(
+            'Something went wrong!');
     }
   }
 
@@ -116,7 +113,7 @@ class _HomepageState extends State<Homepage> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (BuildContext context) => DebtorDashboard(
+                        builder: (BuildContext context) => CreditorBoard(
                           name, balance, id
                         )));
               },
@@ -155,7 +152,9 @@ class _HomepageState extends State<Homepage> {
           List data = snapshot.data;
           return _creditorListView(data);
         } else if (snapshot.hasError) {
-          return Text("${snapshot.error}");
+          return Center(
+            child: Text("${snapshot.error}"),
+          );
         }
         return Center(
           child: CircularProgressIndicator(),
@@ -293,9 +292,7 @@ class _HomepageState extends State<Homepage> {
                       onPressed: () async{
                         Navigator.of(context).pop();
                         await registerCreditor(_nameTx.text, _idTx.text, _phoneTx.text);
-                        setState(() {
-                          _fetch = fetchCreditors();
-                        });
+                        _fetch = fetchCreditors();
                       },
 
                       child: Text(
