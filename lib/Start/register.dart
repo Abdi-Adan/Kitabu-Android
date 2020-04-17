@@ -1,49 +1,51 @@
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:kitabu_android/Screens/root.dart';
-import 'package:kitabu_android/Start/register.dart';
-import 'package:kitabu_android/models/access.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'Login.dart';
 
-class Login extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   @override
-  _LoginState createState() => _LoginState();
+  _RegisterPageState createState() => _RegisterPageState();
 }
 
-class _LoginState extends State<Login> {
+class _RegisterPageState extends State<RegisterPage> {
+  TextEditingController _nameTx = new TextEditingController();
   TextEditingController _idTx = new TextEditingController();
+  TextEditingController _phoneTx = new TextEditingController();
   TextEditingController _passTx = new TextEditingController();
 
   TextStyle style = TextStyle(fontSize: 20.0);
 
-  getToken(String idnumber, String password) async {
-  var response = await http.post(
-    'https://kledgerapi.herokuapp.com/get_token',
+  Future<http.Response> registerUser(String name, String idnumber, String phone, String password) {
+  return http.post(
+    'https://kledgerapi.herokuapp.com/register/user',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
     body: jsonEncode(<String, String>{
+      'full_name': name,
       'idnumber': idnumber,
+      'phone': phone,
       'password': password,
     }),
   );
-  Map<String, dynamic> map = json.decode(response.body);
-  var accessToken = AccessToken.fromJson(map);
-  String token = accessToken.access_token;
-  return _saveAccessTokenToPrefs(token);
 }
-
-  _saveAccessTokenToPrefs(String token) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('token', token);
-  }
 
   @override
   Widget build(BuildContext context) {
+    final nameField = TextField(
+      controller: _nameTx,
+      obscureText: false,
+      style: style,
+      decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
+          hintText: "Full Name",
+          border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(32.0))),
+    );
     final idField = TextField(
       controller: _idTx,
       obscureText: false,
@@ -51,6 +53,16 @@ class _LoginState extends State<Login> {
       decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
           hintText: "ID Number",
+          border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(32.0))),
+    );
+    final phoneField = TextField(
+      controller: _phoneTx,
+      obscureText: false,
+      style: style,
+      decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
+          hintText: "Phone Number",
           border:
               OutlineInputBorder(borderRadius: BorderRadius.circular(32.0))),
     );
@@ -71,13 +83,14 @@ class _LoginState extends State<Login> {
       child: MaterialButton(
         minWidth: MediaQuery.of(context).size.width,
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-        onPressed: () {
-          getToken(_idTx.text, _passTx.text).whenComplete((){
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (contex) => MyControlScreen()));
-          }
-          );
+        onPressed: () async {
+          await registerUser(_nameTx.text, _idTx.text, _phoneTx.text, _passTx.text);
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setString('idnumber', _idTx.text);
+          Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (contex) => Login()));
         },
-        child: Text("Log In",
+        child: Text("Register",
             textAlign: TextAlign.center,
             style: style.copyWith(
                 color: Colors.white, fontWeight: FontWeight.bold)),
@@ -88,9 +101,9 @@ class _LoginState extends State<Login> {
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
         onPressed: () {
           Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (contex) => RegisterPage()));
+                  context, MaterialPageRoute(builder: (contex) => Login()));
         },
-        child: Text("Don't have an account? Sign Up.",
+        child: Text("Already have an account? Sign In.",
             textAlign: TextAlign.center,
             style: style.copyWith(
                 color: Colors.white, fontWeight: FontWeight.bold)),
@@ -114,9 +127,11 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 SizedBox(height: 45.0),
+                nameField,
                 SizedBox(height: 25.0),
                 idField,
                 SizedBox(height: 25.0),
+                phoneField,
                 SizedBox(height: 25.0),
                 passwordField,
                 SizedBox(
@@ -135,4 +150,3 @@ class _LoginState extends State<Login> {
     );
   }
 }
-
