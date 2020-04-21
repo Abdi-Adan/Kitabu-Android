@@ -44,36 +44,6 @@ class _CreditorBoardState extends State<CreditorBoard> {
             "$creditorName",
             style: TextStyle(color: Colors.white),
           ),
-          actions: <Widget>[
-            InkWell(
-              splashColor: Colors.orange,
-              onTap: () {},
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 15.0,
-                  right: 15.0,
-                ),
-                child: Icon(
-                  Icons.vibration,
-                  color: Colors.deepOrange,
-                ),
-              ),
-            ),
-            InkWell(
-              splashColor: Colors.orange,
-              onTap: () {},
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 15.0,
-                  right: 15.0,
-                ),
-                child: Icon(
-                  Icons.person,
-                  color: Colors.deepOrange,
-                ),
-              ),
-            ),
-          ],
           bottom: TabBar(
             labelColor: Color(0xff2f00ff),
             unselectedLabelColor: Colors.white,

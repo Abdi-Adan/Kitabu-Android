@@ -2,150 +2,288 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'package:http/http.dart' as http;
-import 'package:kitabu_android/Screens/Debtors/CreditorBoard.dart';
-import 'package:kitabu_android/models/creditor.dart';
+import 'package:kitabu_android/models/items.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
-class Homepage extends StatefulWidget {
+class DebtorDashboard extends StatefulWidget {
+  final String creditorName;
+  final double creditorDebt;
+  final int creditorId;
+
+  const DebtorDashboard(this.creditorName, this.creditorDebt, this.creditorId);
   @override
-  _HomepageState createState() => _HomepageState();
+  _DebtorDashboardState createState() =>
+      _DebtorDashboardState(creditorName, creditorDebt, creditorId);
 }
 
-class _HomepageState extends State<Homepage> {
-  
-  TextEditingController _nameTx = new TextEditingController();
-  TextEditingController _idTx = new TextEditingController();
-  TextEditingController _phoneTx = new TextEditingController();
+class _DebtorDashboardState extends State<DebtorDashboard> {
+  final String creditorName;
+  final double creditorDebt;
+  final int creditorId;
 
-  //
+  //var itemTitle;
+
+  TextEditingController _nameTx = new TextEditingController();
+  TextEditingController _priceTx = new TextEditingController();
+  TextEditingController _quantityTx = new TextEditingController();
+
+  _DebtorDashboardState(this.creditorName, this.creditorDebt, this.creditorId);
+
+  Future<List<Item>> fetchItems() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.get('token');
+    final response = await http.get(
+      'https://kledgerapi.herokuapp.com/$creditorId/items',
+      headers: {HttpHeaders.authorizationHeader: "Bearer $token"},
+    );
+
+    //print(response.body);
+    //print(response.statusCode);
+
+    if (response.statusCode == 202) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map((item) => new Item.fromJson(item)).toList();
+    } else if (response.statusCode == 404) {
+      throw Exception("No records Found!");
+    } else {
+      throw Exception('Something went wrong!');
+    }
+  }
+
+  Future<List<Item>> _fetch;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch = fetchItems();
+  }
+
+  Future<http.Response> addItem(
+      String name, String price, String quantity) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.get('token');
+    return http.post(
+      'https://kledgerapi.herokuapp.com/$creditorId/add_item',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: "Bearer $token",
+      },
+      body: jsonEncode({
+        'item_name': name,
+        'price': price,
+        'quantity': quantity,
+        'borrower': creditorId,
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+        onWillPop: () {
+          moveBackToHomepage();
+          return null;
+        },
+        child: Scaffold(
+          body: SafeArea(
+            child: Padding(
+                padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
+                child: buildList(context)),
+          ),
+          floatingActionButton: FloatingActionButton(
+            elevation: 5.0,
+            backgroundColor: Color(0xFFf47f07),
+            tooltip: "Add more items",
+            child: Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              // item add popup
+              showDialog<String>(
+                context: context,
+                builder: (BuildContext context) => SimpleDialog(
+                  title: Text(
+                    "Item Details",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 10.0),
+                      child: TextFormField(
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0xFFf47f07),
+                                  width: 1.5,
+                                  style: BorderStyle.solid,
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(15.0))),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0xFFf47f07),
+                                  width: 1.5,
+                                  style: BorderStyle.solid,
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(15.0))),
+                            labelText: "Item Name",
+                            labelStyle: TextStyle(color: Colors.black)),
+                        controller: _nameTx,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 10.0),
+                      child: TextFormField(
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0xFFf47f07),
+                                  width: 1.5,
+                                  style: BorderStyle.solid,
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(15.0))),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0xFFf47f07),
+                                  width: 1.5,
+                                  style: BorderStyle.solid,
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(15.0))),
+                            labelText: "Item Quantity",
+                            labelStyle: TextStyle(
+                              color: Colors.black,
+                            )),
+                        controller: _quantityTx,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 10.0),
+                      child: TextFormField(
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0xFFf47f07),
+                                  width: 1.5,
+                                  style: BorderStyle.solid,
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(15.0))),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0xFFf47f07),
+                                  width: 1.5,
+                                  style: BorderStyle.solid,
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(15.0))),
+                            labelText: "Price per Quantity",
+                            labelStyle: TextStyle(
+                              color: Colors.black,
+                            )),
+                        controller: _priceTx,
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        RaisedButton(
+                          elevation: 5.0,
+                          color: Color(0xFFf47f07),
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            await addItem(
+                                _nameTx.text, _quantityTx.text, _priceTx.text);
+                            _fetch = fetchItems();
+                          },
+                          child: Text(
+                            "Add",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        RaisedButton(
+                          elevation: 5.0,
+                          color: Color(0xFFf47f07),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            "Cancel",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ));
+  }
+
   void moveBackToHomepage() {
     Navigator.pop(context);
     return null;
   }
 
-  Future<List<Creditor>> _fetch;
-
-  @override
-  void initState(){
-    super.initState();
-    _fetch = fetchCreditors();
-  }
-
-  Future<List<Creditor>> fetchCreditors() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String token = prefs.get('token');
-    //print(token);
-    final response = await http.get(
-      'https://kledgerapi.herokuapp.com/creditors',
-      headers: {HttpHeaders.authorizationHeader: "Bearer $token"},
-    );
-    //print(response.body);
-    print(response.statusCode);
-
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      //print(jsonResponse);
-      //var creditor = jsonResponse.map((creditor) => new Creditor.fromJson(creditor)).toList();
-      //print(creditor);
-      return jsonResponse.map((creditor) => new Creditor.fromJson(creditor)).toList();
-    } else if (response.statusCode == 404){
-      throw Exception("No records Found!"); 
-    } else {
-      throw Exception(
-            'Something went wrong!');
-    }
-  }
-
-  //post creditor
-  Future<http.Response> registerCreditor(String name, String idnumber, String phone) async{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String token = prefs.get('token');
-  return http.post(
-    'https://kledgerapi.herokuapp.com/register/creditor',
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      HttpHeaders.authorizationHeader: "Bearer $token",
-    },
-    body: jsonEncode(<String, String>{
-      'full_name': name,
-      'idnumber': idnumber,
-      'phone': phone,
-    }),
-  );
-}
-
-  ListView _creditorListView(data) {
+  Widget _itemListView(data) {
     return ListView.builder(
         itemCount: data.length,
         itemBuilder: (context, index) {
-          return _tile(data[index].name, data[index].debt, data[index].idnumber);
+          return _tile(
+              data[index].name, data[index].quantity, data[index].price);
         });
   }
 
-  ListTile _tile(String name, double balance, int id) {
-  return ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Color(0xFFf47f07),
-                child: Icon(
-                  Icons.play_for_work,
-                  color: Colors.white,
-                  size: 35.0,
-                ),
+  Widget _tile(String name, double quantity, double price) {
+    return InkWell(
+      splashColor: Color(0xFFf47f07),
+      child: Card(
+        color: Colors.white,
+        elevation: 5.0,
+        child: ListTile(
+          title: Text(
+            name,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          onTap: () {},
+          subtitle: Text("Quantity: $quantity Pcs"),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                "Unit Price: $price KES",
+                style: TextStyle(color: Color(0xFFf47f07)),
               ),
-              title: Text(
-                "$name",
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                "Total: ${price * quantity} KES",
+                style: TextStyle(color: Color(0xFFf47f07)),
               ),
-              subtitle: Text(
-                "Balance Remaining: $balance",
-                style: TextStyle(color: Colors.black),
-              ),
-              trailing: Icon(
-                Icons.add_circle_outline,
-                color: Color(0xFFf47f07),
-              ),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (BuildContext context) => CreditorBoard(
-                          name, balance, id
-                        )));
-              },
-            );
-}
-
-  Future<bool> dialogTrigger(BuildContext context) async {
-    return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text(
-              "Task Executed",
-            ),
-            content: Text("Creditor sucessfully added"),
-            actions: <Widget>[
-              FlatButton(
-                child: Text("COMPLETE"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              )
             ],
-          );
-        });
+          ),
+        ),
+      ),
+    );
   }
 
   Widget buildList(BuildContext context) {
-    return FutureBuilder<List<Creditor>>(
+    return FutureBuilder<List<Item>>(
       future: _fetch,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          List data = snapshot.data;
-          return _creditorListView(data);
+          List<Item> data = snapshot.data;
+          return _itemListView(data);
         } else if (snapshot.hasError) {
           return Center(
             child: Text("${snapshot.error}"),
@@ -157,151 +295,4 @@ class _HomepageState extends State<Homepage> {
       },
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-         child: buildList(context),
-       ),
-      floatingActionButton: FloatingActionButton(
-        elevation: 5.0,
-        backgroundColor: Color(0xFFf47f07),
-        tooltip: "Issue a new loan",
-        child: Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
-        onPressed: () {
-          showDialog<String>(
-            context: context,
-            builder: (BuildContext context) => SimpleDialog(
-              title: Text(
-                "New Creditor",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              children: <Widget>[
-                Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-                  child: TextFormField(
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFf47f07),
-                              width: 1.5,
-                              style: BorderStyle.solid,
-                            ),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(15.0))),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFf47f07),
-                              width: 1.5,
-                              style: BorderStyle.solid,
-                            ),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(15.0))),
-                        labelText: "Creditors' Name",
-                        labelStyle: TextStyle(color: Colors.black)),
-                    controller: _nameTx,
-                  ),
-                ),
-                Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-                  child: TextFormField(
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFf47f07),
-                              width: 1.5,
-                              style: BorderStyle.solid,
-                            ),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(15.0))),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFf47f07),
-                              width: 1.5,
-                              style: BorderStyle.solid,
-                            ),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(15.0))),
-                        labelText: "ID Number",
-                        labelStyle: TextStyle(
-                          color: Colors.black,
-                        )),
-                    controller: _idTx,
-                  ),
-                ),
-                Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-                  child: TextFormField(
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFf47f07),
-                              width: 1.5,
-                              style: BorderStyle.solid,
-                            ),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(15.0))),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFf47f07),
-                              width: 1.5,
-                              style: BorderStyle.solid,
-                            ),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(15.0))),
-                        labelText: "Phone Number",
-                        labelStyle: TextStyle(
-                          color: Colors.black,
-                        )),
-                    controller: _phoneTx,
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    RaisedButton(
-                      elevation: 5.0,
-                      color: Color(0xFFf47f07),
-                      onPressed: () async{
-                        Navigator.of(context).pop();
-                        await registerCreditor(_nameTx.text, _idTx.text, _phoneTx.text);
-                        _fetch = fetchCreditors();
-                      },
-                      child: Text(
-                        "Add",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    RaisedButton(
-                      elevation: 5.0,
-                      color: Color(0xFFf47f07),
-                      onPressed: () {
-                        moveBackToHomepage();
-                      },
-                      child: Text(
-                        "Cancel",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
 }
-

@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:kitabu_android/Screens/Ads/AdsPage.dart';
 import 'package:kitabu_android/Screens/Debtors/Debtors.dart';
 import 'package:kitabu_android/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,7 +18,7 @@ class _MyControlScreenState extends State<MyControlScreen> {
   int _page = 0;
   GlobalKey _bottomNavigationKey = GlobalKey();
 
-  List<Widget> _screens = [Homepage(), AdsPage(),];
+  List<Widget> _screens = [Homepage(),];
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +32,7 @@ class _MyControlScreenState extends State<MyControlScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      drawer: MyDrawer(),
+      // drawer: MyDrawer(),
       body: _screens[_page],
       bottomNavigationBar: CurvedNavigationBar(
         key: _bottomNavigationKey,

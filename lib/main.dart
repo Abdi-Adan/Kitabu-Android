@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:kitabu_android/Screens/Debtors/Debtors.dart';
+import 'package:kitabu_android/Screens/root.dart';
+import 'package:kitabu_android/Start/Login.dart';
 import 'package:kitabu_android/Start/splash.dart';
 
 
@@ -16,12 +19,12 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.deepOrange,
       ),
       home: Splash(),
-      // routes: <String, WidgetBuilder> {
-      //   "/landingpage": (BuildContext context) => SplashPage(),
-      //   "/loginPage": (BuildContext context) =>LoginPage(),
-      //   "/HomePage": (BuildContext context) =>Homepage(),
-      //   "/ControlScreen": (BuildContext context) =>MyControlScreen(),
-      // },
+      routes: <String, WidgetBuilder> {
+        "/landingpage": (BuildContext context) => Splash(),
+        "/loginPage": (BuildContext context) =>Login(),
+        "/HomePage": (BuildContext context) =>Homepage(),
+        "/ControlScreen": (BuildContext context) =>MyControlScreen(),
+      },
     );
   }
 }

@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import 'package:kitabu_android/Screens/Debtors/CreditorBoard.dart';
 import 'package:kitabu_android/models/creditor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:kitabu_android/Widgets/Debtors/debtorCard.dart';
 
 class Homepage extends StatefulWidget {
   @override
@@ -15,7 +14,6 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  
   TextEditingController _nameTx = new TextEditingController();
   TextEditingController _idTx = new TextEditingController();
   TextEditingController _phoneTx = new TextEditingController();
@@ -29,7 +27,7 @@ class _HomepageState extends State<Homepage> {
   Future<List<Creditor>> _fetch;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _fetch = fetchCreditors();
   }
@@ -50,73 +48,82 @@ class _HomepageState extends State<Homepage> {
       //print(jsonResponse);
       //var creditor = jsonResponse.map((creditor) => new Creditor.fromJson(creditor)).toList();
       //print(creditor);
-      return jsonResponse.map((creditor) => new Creditor.fromJson(creditor)).toList();
-    } else if (response.statusCode == 404){
-      throw Exception("No records Found!"); 
+      return jsonResponse
+          .map((creditor) => new Creditor.fromJson(creditor))
+          .toList();
+    } else if (response.statusCode == 404) {
+      throw Exception("No records Found!");
     } else {
-      throw Exception(
-            'Something went wrong!');
+      throw Exception('Something went wrong!');
     }
   }
 
   //post creditor
-  Future<http.Response> registerCreditor(String name, String idnumber, String phone) async{
+  Future<http.Response> registerCreditor(
+      String name, String idnumber, String phone) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.get('token');
-  return http.post(
-    'https://kledgerapi.herokuapp.com/register/creditor',
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      HttpHeaders.authorizationHeader: "Bearer $token",
-    },
-    body: jsonEncode(<String, String>{
-      'full_name': name,
-      'idnumber': idnumber,
-      'phone': phone,
-    }),
-  );
-}
+    return http.post(
+      'https://kledgerapi.herokuapp.com/register/creditor',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: "Bearer $token",
+      },
+      body: jsonEncode(<String, String>{
+        'full_name': name,
+        'idnumber': idnumber,
+        'phone': phone,
+      }),
+    );
+  }
 
   ListView _creditorListView(data) {
     return ListView.builder(
         itemCount: data.length,
         itemBuilder: (context, index) {
-          return _tile(data[index].name, data[index].debt, data[index].idnumber);
+          return _tile(
+              data[index].name, data[index].debt, data[index].idnumber);
         });
   }
 
-  ListTile _tile(String name, double balance, int id) {
-  return ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Color(0xFFf47f07),
-                child: Icon(
-                  Icons.play_for_work,
-                  color: Colors.white,
-                  size: 35.0,
-                ),
-              ),
-              title: Text(
-                "$name",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                "Balance Remaining: $balance",
-                style: TextStyle(color: Colors.black),
-              ),
-              trailing: Icon(
-                Icons.add_circle_outline,
-                color: Color(0xFFf47f07),
-              ),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (BuildContext context) => CreditorBoard(
-                          name, balance, id
-                        )));
-              },
-            );
-}
+  Widget _tile(String name, double balance, int id) {
+    return Card(
+      color: Colors.white,
+      elevation: 5.0,
+      child: InkWell(
+        splashColor: Colors.deepOrange,
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Color(0xFFf47f07),
+            child: Icon(
+              Icons.play_for_work,
+              color: Colors.white,
+              size: 35.0,
+            ),
+          ),
+          title: Text(
+            "$name",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(
+            "Balance Remaining: $balance",
+            style: TextStyle(color: Colors.black),
+          ),
+          trailing: Icon(
+            Icons.add_circle_outline,
+            color: Color(0xFFf47f07),
+          ),
+          onTap: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                        CreditorBoard(name, balance, id)));
+          },
+        ),
+      ),
+    );
+  }
 
   Future<bool> dialogTrigger(BuildContext context) async {
     return showDialog(
@@ -132,7 +139,7 @@ class _HomepageState extends State<Homepage> {
               FlatButton(
                 child: Text("COMPLETE"),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pushReplacementNamed('/HomePage');
                 },
               )
             ],
@@ -164,8 +171,8 @@ class _HomepageState extends State<Homepage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-         child: buildList(context),
-       ),
+        child: buildList(context),
+      ),
       floatingActionButton: FloatingActionButton(
         elevation: 5.0,
         backgroundColor: Color(0xFFf47f07),
@@ -274,9 +281,10 @@ class _HomepageState extends State<Homepage> {
                     RaisedButton(
                       elevation: 5.0,
                       color: Color(0xFFf47f07),
-                      onPressed: () async{
-                        Navigator.of(context).pop();
-                        await registerCreditor(_nameTx.text, _idTx.text, _phoneTx.text);
+                      onPressed: () async {
+                        Navigator.of(context).pushReplacementNamed('/HomePage');
+                        await registerCreditor(
+                            _nameTx.text, _idTx.text, _phoneTx.text);
                         _fetch = fetchCreditors();
                       },
                       child: Text(
